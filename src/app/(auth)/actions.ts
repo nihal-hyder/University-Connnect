@@ -10,13 +10,17 @@ import { createClient } from "@/lib/supabase/server";
 
 const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address").max(200);
 
+/** Bot-protection token from the Turnstile widget (only checked when Supabase Auth has CAPTCHA enabled). */
+const captcha = (token?: string) => (token ? token.slice(0, 4096) : undefined);
+const CAPTCHA_FAILED = "The security check didn't go through. Complete it again and retry.";
+
 const signupSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your name").max(120),
   email: emailSchema,
   password: passwordSchema,
 });
 
-export async function signUp(input: z.infer<typeof signupSchema>): Promise<ActionResult<{ email: string }>> {
+export async function signUp(input: z.infer<typeof signupSchema>, captchaToken?: string): Promise<ActionResult<{ email: string }>> {
   const parsed = signupSchema.safeParse(input);
   if (!parsed.success) return fail("Please check the form.", z.flattenError(parsed.error).fieldErrors);
   const supabase = await createClient();
@@ -28,9 +32,11 @@ export async function signUp(input: z.infer<typeof signupSchema>): Promise<Actio
       // from sign-up; the database ignores anything else here.
       data: { full_name: parsed.data.fullName },
       emailRedirectTo: `${publicEnv.siteUrl}/auth/confirm?next=/onboarding`,
+      captchaToken: captcha(captchaToken),
     },
   });
   if (error) {
+    if (error.code === "captcha_failed") return fail(CAPTCHA_FAILED);
     if (error.code === "weak_password") return fail("Choose a stronger password.", { password: [error.message] });
     if (error.code === "over_email_send_rate_limit" || error.status === 429) {
       return fail("Too many attempts. Please wait a few minutes and try again.");
@@ -47,12 +53,17 @@ export async function signUp(input: z.infer<typeof signupSchema>): Promise<Actio
 
 const loginSchema = z.object({ email: emailSchema, password: z.string().min(1, "Enter your password").max(72), next: z.string().optional() });
 
-export async function signIn(input: z.infer<typeof loginSchema>): Promise<ActionResult<null> | never> {
+export async function signIn(input: z.infer<typeof loginSchema>, captchaToken?: string): Promise<ActionResult<null> | never> {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) return fail("Enter your email and password.", z.flattenError(parsed.error).fieldErrors);
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
+  const { error } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: { captchaToken: captcha(captchaToken) },
+  });
   if (error) {
+    if (error.code === "captcha_failed") return fail(CAPTCHA_FAILED);
     if (error.code === "email_not_confirmed") {
       return fail("Please verify your email first. Check your inbox for the link, or resend it below.", { email: ["unconfirmed"] });
     }
@@ -62,26 +73,29 @@ export async function signIn(input: z.infer<typeof loginSchema>): Promise<Action
   redirect(safeNextPath(parsed.data.next, "/dashboard"));
 }
 
-export async function resendVerification(email: string): Promise<ActionResult<null>> {
+export async function resendVerification(email: string, captchaToken?: string): Promise<ActionResult<null>> {
   const parsed = emailSchema.safeParse(email);
   if (!parsed.success) return fail("Enter a valid email address.");
   const supabase = await createClient();
   const { error } = await supabase.auth.resend({
     type: "signup",
     email: parsed.data,
-    options: { emailRedirectTo: `${publicEnv.siteUrl}/auth/confirm?next=/onboarding` },
+    options: { emailRedirectTo: `${publicEnv.siteUrl}/auth/confirm?next=/onboarding`, captchaToken: captcha(captchaToken) },
   });
+  if (error?.code === "captcha_failed") return fail(CAPTCHA_FAILED);
   if (error?.status === 429) return fail("Please wait a minute before requesting another email.");
   return { ok: true, data: null, message: "If that address has an unverified account, we sent a new link." };
 }
 
-export async function requestPasswordReset(email: string): Promise<ActionResult<null>> {
+export async function requestPasswordReset(email: string, captchaToken?: string): Promise<ActionResult<null>> {
   const parsed = emailSchema.safeParse(email);
   if (!parsed.success) return fail("Enter a valid email address.");
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
     redirectTo: `${publicEnv.siteUrl}/auth/confirm?type=recovery&next=/reset-password`,
+    captchaToken: captcha(captchaToken),
   });
+  if (error?.code === "captcha_failed") return fail(CAPTCHA_FAILED);
   if (error?.status === 429) return fail("Please wait a minute before requesting another email.");
   return { ok: true, data: null };
 }

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, MailCheck } from "lucide-react";
 import { resendVerification, signUp } from "@/app/(auth)/actions";
+import { Captcha, captchaEnabled } from "@/components/forms/captcha";
 import { describedBy, Field } from "@/components/forms/field";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DevMailboxNote } from "@/components/forms/dev-mailbox-note";
@@ -24,6 +25,14 @@ export function SignupForm() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
+  const needsCaptcha = captchaEnabled && !captchaToken;
+  // Turnstile tokens are single use: get a fresh one after every attempt.
+  const renewCaptcha = () => {
+    setCaptchaToken(null);
+    setCaptchaKey((k) => k + 1);
+  };
   const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema), defaultValues: { fullName: "", email: "", password: "" } });
   const errors = form.formState.errors;
 
@@ -37,13 +46,19 @@ export function SignupForm() {
           verification link to it. Open the link to finish setting up. If you already have an account, log in instead.
         </p>
         <DevMailboxNote />
+        {captchaEnabled ? (
+          <div className="mt-5">
+            <Captcha key={captchaKey} onToken={setCaptchaToken} />
+          </div>
+        ) : null}
         <Button
           variant="outline"
           className="mt-5"
-          disabled={pending}
+          disabled={pending || needsCaptcha}
           onClick={() =>
             start(async () => {
-              const res = await resendVerification(sentTo);
+              const res = await resendVerification(sentTo, captchaToken ?? undefined);
+              renewCaptcha();
               setNotice(res.ok ? res.message ?? "Sent." : res.error);
             })
           }
@@ -58,7 +73,8 @@ export function SignupForm() {
   const onSubmit = form.handleSubmit((values) => {
     setError(null);
     start(async () => {
-      const res = await signUp(values);
+      const res = await signUp(values, captchaToken ?? undefined);
+      renewCaptcha();
       if (!res.ok) {
         setError(res.error);
         for (const [k, v] of Object.entries(res.fieldErrors ?? {})) {
@@ -86,7 +102,8 @@ export function SignupForm() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
+      <Captcha key={captchaKey} onToken={setCaptchaToken} />
+      <Button type="submit" size="lg" className="w-full" disabled={pending || needsCaptcha}>
         {pending ? <Loader2 className="animate-spin" /> : null} Create account
       </Button>
       <p className="text-xs leading-5 text-muted-foreground">

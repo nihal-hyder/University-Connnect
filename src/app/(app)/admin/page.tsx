@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ActionButton } from "@/components/common/action-button";
 import { PageHeader, Section, Stat, StatRow } from "@/components/layout/dashboard-shell";
-import { setMaintenance } from "@/lib/actions/admin";
+import { ScheduleMaintenanceForm } from "@/components/admin/schedule-maintenance";
+import { scheduleMaintenance, setMaintenance } from "@/lib/actions/admin";
 import { requireAdmin } from "@/lib/auth/session";
 import { emailMode, serverEnv } from "@/lib/env/server";
 import { formatDateTime, olderThan, relativeFromNow } from "@/lib/format";
@@ -92,6 +93,35 @@ export default async function AdminOverview() {
             </ActionButton>
           )}
         </div>
+        {!statusRes.error && !site.maintenance ? (
+          <div className="mt-3 rounded-xl border border-border bg-surface p-5 text-sm">
+            {site.scheduledAt ? (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                  <span className="font-medium">Maintenance scheduled for {formatDateTime(site.scheduledAt)}</span>{" "}
+                  <span className="text-muted-foreground">
+                    ({relativeFromNow(site.scheduledAt)}). Every page shows a notice until then; at that time the site switches to the
+                    maintenance page automatically.
+                  </span>
+                </p>
+                <ActionButton
+                  className="shrink-0"
+                  variant="outline"
+                  action={scheduleMaintenance.bind(null, null)}
+                  confirm={{ title: "Cancel the scheduled maintenance?", body: "The notice disappears and the site stays online.", confirmLabel: "Cancel maintenance" }}
+                >
+                  Cancel schedule
+                </ActionButton>
+              </div>
+            ) : (
+              <>
+                <p className="mb-3 font-medium">Schedule maintenance in advance</p>
+                <ScheduleMaintenanceForm />
+                <p className="mt-2 text-xs text-muted-foreground">Times are in your device&rsquo;s time zone. Visitors see a notice on every page until it starts.</p>
+              </>
+            )}
+          </div>
+        ) : null}
       </Section>
 
       {error || !m ? (

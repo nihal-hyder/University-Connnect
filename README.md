@@ -88,6 +88,8 @@ See `.env.example` for the full annotated list. Only `NEXT_PUBLIC_*` values reac
 | `RESEND_WEBHOOK_SECRET` | server only | Optional. Verifies Resend's delivery webhooks so emails can be marked delivered / bounced / complained. |
 | `JOB_SECRET` (+ `CRON_SECRET` on Vercel) | server only | Bearer token for `/api/jobs/process`. |
 | `VIEW_HASH_SALT` | server only | Salt for anonymous daily page-view hashing. |
+| `NEXT_PUBLIC_SENTRY_DSN` | public, optional | Sentry error tracking. Collects stack traces and routes only (no user info, cookies, headers, bodies or query strings). |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | public, optional | Cloudflare Turnstile on sign-up, log-in and password reset. Also set the Turnstile **secret** in Supabase → Authentication → Attack Protection → CAPTCHA, or sign-in will fail. |
 
 If a required public variable is missing the app fails fast with a message pointing here. If Resend or the secret key is missing, the relevant feature degrades explicitly (dev email mode; account deletion and the worker report "not configured").
 
@@ -250,7 +252,11 @@ The app runs on any Node host that supports Next.js 16. The steps below use Supa
 
 Deployment has **not** been performed from this session; only local builds and tests were run.
 
-**Backups and recovery**: on the free plan, schedule your own logical backups, e.g. a GitHub Action or local cron running `npx supabase db dump --linked -f backup.sql` (store outside the repo, encrypted). Test a restore into a fresh project before relying on it. Migrations in this repo rebuild the schema; data needs the dump.
+**Backups and recovery**: the free plan has no automatic backups. `.github/workflows/backup.yml` dumps roles, schema and data every Saturday night, encrypts the archive with `BACKUP_PASSPHRASE` and keeps it as a workflow artifact for 30 days. Add repository secrets `SUPABASE_DB_URL` (the **Session pooler** connection string, with the password) and `BACKUP_PASSPHRASE` (keep a copy somewhere safe). Restore steps are at the top of the workflow file. Test a restore into a fresh project before relying on it.
+
+**Maintenance mode**: `/admin` → Site availability. Turn it on immediately, or schedule a start time: until then every page shows a notice, and at that time the site switches to the maintenance page (HTTP 503) automatically. Platform administrators can always use the site and sign in at `/login`.
+
+**Analytics**: enable *Web Analytics* in the Vercel project (cookie-free; the `<Analytics />` component is already in the root layout).
 
 ---
 

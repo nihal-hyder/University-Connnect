@@ -17,11 +17,13 @@ describe("maintenance mode", () => {
   it("treats anything unexpected from the database as online", () => {
     expect(parseSiteStatus(null).maintenance).toBe(false);
     expect(parseSiteStatus({ maintenance: "true" }).maintenance).toBe(false);
-    expect(parseSiteStatus({ maintenance: true, message: "  " })).toEqual({ maintenance: true, message: null, updatedAt: null });
+    expect(parseSiteStatus({ maintenance: true, message: "  " })).toEqual({ maintenance: true, message: null, scheduledAt: null, updatedAt: null });
     expect(parseSiteStatus({ maintenance: true, message: " Back at 6pm ", updated_at: "2026-10-17T00:00:00Z" })).toEqual({
       maintenance: true,
       message: "Back at 6pm",
+      scheduledAt: null,
       updatedAt: "2026-10-17T00:00:00Z",
     });
+    expect(parseSiteStatus({ maintenance: false, scheduled_at: "2026-10-20T18:00:00Z" }).scheduledAt).toBe("2026-10-20T18:00:00Z");
   });
 });

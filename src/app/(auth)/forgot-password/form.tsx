@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { requestPasswordReset } from "@/app/(auth)/actions";
+import { Captcha, captchaEnabled } from "@/components/forms/captcha";
 import { Field } from "@/components/forms/field";
 import { DevMailboxNote } from "@/components/forms/dev-mailbox-note";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,6 +15,8 @@ export function ForgotPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [pending, start] = useTransition();
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   if (sent) {
     return (
@@ -35,16 +38,21 @@ export function ForgotPasswordForm() {
         e.preventDefault();
         setError(null);
         start(async () => {
-          const res = await requestPasswordReset(email);
+          const res = await requestPasswordReset(email, captchaToken ?? undefined);
           if (res.ok) setSent(true);
-          else setError(res.error);
+          else {
+            setError(res.error);
+            setCaptchaToken(null);
+            setCaptchaKey((k) => k + 1);
+          }
         });
       }}
     >
       <Field id="email" label="Email" error={error ?? undefined}>
         <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={Boolean(error)} />
       </Field>
-      <Button type="submit" size="lg" className="w-full" disabled={pending || !email}>
+      <Captcha key={captchaKey} onToken={setCaptchaToken} />
+      <Button type="submit" size="lg" className="w-full" disabled={pending || !email || (captchaEnabled && !captchaToken)}>
         {pending ? <Loader2 className="animate-spin" /> : null} Send reset link
       </Button>
     </form>

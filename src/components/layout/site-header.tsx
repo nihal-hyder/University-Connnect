@@ -3,6 +3,8 @@ import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme/theme";
 import { Button } from "@/components/ui/button";
 import { getViewer } from "@/lib/auth/session";
+import { formatDateTime } from "@/lib/format";
+import { parseSiteStatus } from "@/lib/site-status";
 import { createClient } from "@/lib/supabase/server";
 import { MainNav, MobileNav } from "./main-nav";
 import { UserMenu } from "./user-menu";
@@ -15,10 +17,11 @@ export const PUBLIC_NAV = [
 ] as const;
 
 export async function SiteHeader() {
-  const viewer = await getViewer();
+  const supabase = await createClient();
+  const [viewer, statusRes] = await Promise.all([getViewer(), supabase.rpc("get_site_status")]);
+  const site = parseSiteStatus(statusRes.data);
   let unread = 0;
   if (viewer) {
-    const supabase = await createClient();
     const { count } = await supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -38,6 +41,12 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+      {site.scheduledAt ? (
+        <p role="status" className="border-b border-warning/40 bg-warning-soft px-4 py-2 text-center text-[13px] leading-5">
+          <strong className="font-medium">Scheduled maintenance:</strong> the site will be unavailable from {formatDateTime(site.scheduledAt)} (Pakistan
+          time). {site.message ?? "Please plan around it."}
+        </p>
+      ) : null}
       <div className="page-container flex h-16 items-center gap-3 sm:gap-6">
         <Logo />
         <MainNav items={PUBLIC_NAV} className="hidden lg:flex" />

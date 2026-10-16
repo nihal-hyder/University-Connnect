@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { Intro } from "@/components/motion/intro";
 import { IntroDone } from "@/components/motion/intro-done";
@@ -66,6 +67,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         <Toaster position="bottom-right" />
+        {/* Cookie-free page-view analytics; only reports when deployed on Vercel with Web Analytics enabled. */}
+        <Analytics />
       </body>
     </html>
   );

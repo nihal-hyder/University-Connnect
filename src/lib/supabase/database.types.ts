@@ -1175,6 +1175,9 @@ isOneToOne: false
 "admin_set_maintenance":
 { Args: { "p_enabled": boolean,"p_message"?: string }; Returns: undefined
                            },
+"admin_schedule_maintenance":
+{ Args: { "p_message"?: string,"p_starts_at": string | null }; Returns: undefined
+                           },
 "admin_set_society_review_policy":
 { Args: { "p_requires_review": boolean,"p_society": string }; Returns: undefined
                            },

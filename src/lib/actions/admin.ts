@@ -96,6 +96,17 @@ export async function setMaintenance(enabled: boolean, message?: string): Promis
   );
 }
 
+/** Schedule maintenance for a future time (ISO string), or cancel with null. */
+export async function scheduleMaintenance(startsAt: string | null, message?: string): Promise<ActionResult<null>> {
+  if (!(await adminGuard())) return fail(NOT_ADMIN);
+  if (startsAt !== null && !z.iso.datetime({ offset: true }).safeParse(startsAt).success) return fail("Choose a valid date and time.");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_schedule_maintenance", { p_starts_at: startsAt, p_message: message?.trim().slice(0, 500) || undefined });
+  if (error) return fail(userMessage(error));
+  revalidatePath("/", "layout");
+  return done(startsAt ? "Maintenance scheduled. Every page now shows a notice until it starts." : "Scheduled maintenance cancelled.");
+}
+
 // --- Directory (universities, campuses, departments, categories) -----------
 const slugify = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 
