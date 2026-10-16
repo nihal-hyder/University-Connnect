@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ActionButton } from "@/components/common/action-button";
 import { PageHeader, Section, Stat, StatRow } from "@/components/layout/dashboard-shell";
+import { setMaintenance } from "@/lib/actions/admin";
 import { requireAdmin } from "@/lib/auth/session";
 import { emailMode, serverEnv } from "@/lib/env/server";
 import { formatDateTime, olderThan, relativeFromNow } from "@/lib/format";
+import { DEFAULT_MAINTENANCE_MESSAGE, parseSiteStatus } from "@/lib/site-status";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Administration" };
 
@@ -31,8 +35,9 @@ type Metrics = {
 export default async function AdminOverview() {
   await requireAdmin();
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("admin_platform_metrics");
+  const [{ data, error }, statusRes] = await Promise.all([supabase.rpc("admin_platform_metrics"), supabase.rpc("get_site_status")]);
   const m = data as unknown as Metrics | null;
+  const site = parseSiteStatus(statusRes.data);
   const job = m?.last_job_run;
   const webhookConfigured = Boolean(serverEnv.resendWebhookSecret);
   const jobStale = olderThan(job?.started_at, 2 * 3600 * 1000);
@@ -40,6 +45,55 @@ export default async function AdminOverview() {
   return (
     <>
       <PageHeader title="Platform overview" description="Aggregate counts only. Open a queue to act." />
+
+      <Section title="Site availability" className="mb-10">
+        <div
+          className={cn(
+            "flex flex-col gap-4 rounded-xl border p-5 sm:flex-row sm:items-center sm:justify-between",
+            site.maintenance ? "border-warning/50 bg-warning-soft" : "border-border bg-surface",
+          )}
+        >
+          <div className="min-w-0 text-sm">
+            <p className="flex items-center gap-2 font-medium">
+              <span className={cn("size-2.5 shrink-0 rounded-full", site.maintenance ? "bg-warning" : "bg-success")} aria-hidden />
+              {site.maintenance ? "Under maintenance: visitors see the maintenance page" : "Online: the site is available to everyone"}
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              {site.maintenance
+                ? `Message: "${site.message ?? DEFAULT_MAINTENANCE_MESSAGE}". Administrators can keep using the site.`
+                : "Maintenance mode hides the site from everyone except platform administrators."}
+              {site.updatedAt ? ` Last changed ${relativeFromNow(site.updatedAt)}.` : ""}
+            </p>
+          </div>
+          {statusRes.error ? (
+            <p className="text-sm text-destructive">Status could not be loaded.</p>
+          ) : site.maintenance ? (
+            <ActionButton
+              className="shrink-0"
+              action={setMaintenance.bind(null, false)}
+              confirm={{ title: "Bring the site back online?", body: "Everyone will be able to use the site again straight away.", confirmLabel: "Go live" }}
+            >
+              Bring site back online
+            </ActionButton>
+          ) : (
+            <ActionButton
+              className="shrink-0"
+              variant="destructive"
+              action={setMaintenance.bind(null, true)}
+              confirm={{
+                title: "Put the site into maintenance mode?",
+                body: "All visitors except platform administrators will see a maintenance page until you switch it off. Signed-in users stay signed in.",
+                confirmLabel: "Turn on maintenance",
+                destructive: true,
+                note: { label: "Message for visitors", placeholder: DEFAULT_MAINTENANCE_MESSAGE },
+              }}
+            >
+              Turn on maintenance mode
+            </ActionButton>
+          )}
+        </div>
+      </Section>
+
       {error || !m ? (
         <p className="text-sm text-destructive">Metrics could not be loaded.</p>
       ) : (

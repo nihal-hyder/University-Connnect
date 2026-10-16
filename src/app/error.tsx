@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 /** Route-level error boundary. Never shows internal error details to users. */
-export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function ErrorPage({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -25,7 +25,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
         .
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button onClick={reset}>Try again</Button>
+        <Button onClick={retry}>Try again</Button>
         <Button asChild variant="outline">
           <Link href="/">Home</Link>
         </Button>

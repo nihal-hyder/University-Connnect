@@ -1172,6 +1172,9 @@ isOneToOne: false
 "admin_review_society_application":
 { Args: { "p_application": string,"p_decision": Database["public"]['Enums']["society_application_status"],"p_message"?: string }; Returns: string
                            },
+"admin_set_maintenance":
+{ Args: { "p_enabled": boolean,"p_message"?: string }; Returns: undefined
+                           },
 "admin_set_society_review_policy":
 { Args: { "p_requires_review": boolean,"p_society": string }; Returns: undefined
                            },
@@ -1203,6 +1206,9 @@ isOneToOne: false
                            },
 "event_private_details":
 { Args: { "p_event": string }; Returns: Json
+                           },
+"get_site_status":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "invite_collaborator":
 { Args: { "p_can_check_in"?: boolean,"p_can_edit_details"?: boolean,"p_can_manage_volunteers"?: boolean,"p_can_view_analytics"?: boolean,"p_can_view_registrations"?: boolean,"p_event": string,"p_message"?: string,"p_society": string }; Returns: string

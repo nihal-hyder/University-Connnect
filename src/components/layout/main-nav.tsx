@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/theme";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,7 @@ export function MobileNav({ items, signedIn }: { items: readonly NavItem[]; sign
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+        <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu">
           <Menu />
         </Button>
       </SheetTrigger>
@@ -80,6 +81,10 @@ export function MobileNav({ items, signedIn }: { items: readonly NavItem[]; sign
                 </SheetClose>
               </>
             )}
+          </div>
+          <div className="mt-6 flex items-center justify-between border-t border-border pt-4 sm:hidden">
+            <span className="text-sm text-muted-foreground">Theme</span>
+            <ThemeToggle />
           </div>
         </nav>
       </SheetContent>

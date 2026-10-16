@@ -38,11 +38,11 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
-      <div className="page-container flex h-16 items-center gap-6">
+      <div className="page-container flex h-16 items-center gap-3 sm:gap-6">
         <Logo />
-        <MainNav items={PUBLIC_NAV} className="hidden md:flex" />
-        <div className="ml-auto flex items-center gap-2">
-          <ThemeToggle />
+        <MainNav items={PUBLIC_NAV} className="hidden lg:flex" />
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          <ThemeToggle className="hidden sm:inline-flex" />
           {menuViewer ? (
             <>
               <Button asChild variant="ghost" className="hidden sm:inline-flex">

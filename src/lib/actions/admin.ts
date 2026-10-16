@@ -84,6 +84,18 @@ export async function updateReport(id: string, status: "reviewing" | "resolved" 
   return done("Report updated.");
 }
 
+export async function setMaintenance(enabled: boolean, message?: string): Promise<ActionResult<null>> {
+  if (!(await adminGuard())) return fail(NOT_ADMIN);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_set_maintenance", { p_enabled: enabled, p_message: message?.trim().slice(0, 500) || undefined });
+  if (error) return fail(userMessage(error));
+  return done(
+    enabled
+      ? "Maintenance mode is on. Visitors now see the maintenance page; administrators can still use the site."
+      : "The site is back online for everyone.",
+  );
+}
+
 // --- Directory (universities, campuses, departments, categories) -----------
 const slugify = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 
