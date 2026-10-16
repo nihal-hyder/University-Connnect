@@ -46,7 +46,7 @@ export async function SiteHeader() {
           {menuViewer ? (
             <>
               <Button asChild variant="ghost" className="hidden sm:inline-flex">
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href={menuViewer.isAdmin ? "/admin" : "/dashboard"}>{menuViewer.isAdmin ? "Admin" : "Dashboard"}</Link>
               </Button>
               <UserMenu viewer={menuViewer} />
             </>

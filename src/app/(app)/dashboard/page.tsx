@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { ActionButton } from "@/components/common/action-button";
@@ -30,6 +31,8 @@ function greeting() {
 
 export default async function DashboardPage() {
   const viewer = await requireViewer("/dashboard");
+  // Administrators manage the platform; the student overview isn't for them.
+  if (viewer.isAdmin) redirect("/admin");
   const supabase = await createClient();
   const { profile } = viewer;
 

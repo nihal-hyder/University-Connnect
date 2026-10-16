@@ -466,11 +466,17 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
               {viewerState.registration ? (
                 <div className="space-y-3">
                   <p className="text-sm">
-                    You&rsquo;re registered —{" "}
+                    {viewerState.registration.status === "confirmed" ? "You’re registered" : "Registration received"} —{" "}
                     <ToneBadge tone={REGISTRATION_STATUS_TONE[viewerState.registration.status as RegistrationStatus]}>
                       {REGISTRATION_STATUS_LABELS[viewerState.registration.status as RegistrationStatus]}
                     </ToneBadge>
                   </p>
+                  {viewerState.registration.status === "pending" ? (
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      The organisers review every registration. You&rsquo;ll be notified when they confirm your place, and your ticket
+                      will appear then.
+                    </p>
+                  ) : null}
                   <p className="text-sm text-muted-foreground">Reference <span className="font-mono text-foreground">{viewerState.registration.reference_code}</span></p>
                   {viewerState.onlineUrl ? (
                     <a href={viewerState.onlineUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-medium text-primary underline underline-offset-4">
@@ -522,7 +528,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
                 </p>
               )}
               {event.requires_approval && (state === "open" || state === "waitlist") && !viewerState.registration ? (
-                <p className="mt-3 text-xs text-muted-foreground">Registrations are approved by the organisers.</p>
+                <p className="mt-3 text-xs text-muted-foreground">Every registration is reviewed by the organisers before it&rsquo;s confirmed.</p>
               ) : null}
             </div>
             {openRoles.length ? (

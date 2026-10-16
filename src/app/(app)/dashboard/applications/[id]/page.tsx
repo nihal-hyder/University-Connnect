@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Award, CalendarClock, ExternalLink, MapPin } from "lucide-react";
+import { CertificateDownloads } from "@/components/certificates/download-buttons";
 import { ActionButton } from "@/components/common/action-button";
 import { AddToCalendar } from "@/components/events/add-to-calendar";
 import { ToneBadge } from "@/components/common/tone-badge";
@@ -115,9 +116,12 @@ export default async function ApplicationDetailPage({ params }: PageProps<"/dash
               <p className="text-sm text-muted-foreground">Anyone can verify it with code {cert.code}.</p>
             </div>
           </div>
-          <Button asChild variant="outline" className="bg-surface">
-            <Link href={`/certificates/${cert.code}`}>View certificate</Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <CertificateDownloads code={cert.code} />
+            <Button asChild variant="outline" size="sm" className="bg-surface">
+              <Link href={`/certificates/${cert.code}`}>View</Link>
+            </Button>
+          </div>
         </div>
       ) : null}
 

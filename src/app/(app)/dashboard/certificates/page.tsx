@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Award } from "lucide-react";
+import { CertificateDownloads } from "@/components/certificates/download-buttons";
 import { EmptyState } from "@/components/common/empty-state";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { requireViewer } from "@/lib/auth/session";
@@ -38,9 +39,12 @@ export default async function CertificatesPage() {
                   {c.revoked_at ? " · revoked" : ""}
                 </p>
               </div>
-              <Link href={`/certificates/${c.code}`} className="text-sm font-medium text-primary hover:underline">
-                View and share
-              </Link>
+              <div className="flex flex-wrap items-center gap-3">
+                {!c.revoked_at ? <CertificateDownloads code={c.code} /> : null}
+                <Link href={`/certificates/${c.code}`} className="text-sm font-medium text-primary hover:underline">
+                  View and share
+                </Link>
+              </div>
             </li>
           ))}
         </ul>

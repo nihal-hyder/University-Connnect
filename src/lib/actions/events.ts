@@ -53,7 +53,9 @@ export async function saveEvent(input: {
   }
   const v = parsed.data;
   const membership = viewer.memberships.find((m) => m.society_id === input.societyId);
-  if (!v.id && !can(membership?.role, "create_events")) return fail("You do not have permission to create events for this society.");
+  // Platform admins hold every society permission (migration 0022).
+  const role = viewer.isAdmin ? "owner" : membership?.role;
+  if (!v.id && !can(role, "create_events")) return fail("You do not have permission to create events for this society.");
   if (!isPathInFolder(v.coverPath, `societies/${input.societyId}`)) return fail("That cover image cannot be used.");
 
   const tz = v.timezone || "Asia/Karachi";
@@ -88,7 +90,8 @@ export async function saveEvent(input: {
     eligibility_notes: v.eligibilityNotes || null,
     registration_mode: v.registrationMode,
     external_registration_url: v.registrationMode === "external" ? v.externalRegistrationUrl || null : null,
-    requires_approval: v.requiresApproval,
+    // Always true: every registration is confirmed by the organisers (DB constraint, migration 0022).
+    requires_approval: true,
     require_university_email: v.requireUniversityEmail,
     capacity: num(v.capacity),
     waitlist_enabled: v.waitlistEnabled,
@@ -158,7 +161,7 @@ export async function saveEvent(input: {
   if (formError) return fail(userMessage(formError, "The event was saved, but the registration form could not be saved."));
 
   // Volunteer roles: only for members who manage volunteers on the host society.
-  if (can(membership?.role, "manage_volunteers")) {
+  if (can(role, "manage_volunteers")) {
     const roleResult = await syncRoles(id, v.roles);
     if (!roleResult.ok) return roleResult;
   }

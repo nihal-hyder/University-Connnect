@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { cleanup, makeEvent } from "../support/db";
-import { signUpAndVerify, unique } from "./helpers";
+import { login, signUpAndVerify, unique } from "./helpers";
 
 test.afterAll(cleanup);
 
-test("student: sign up, verify, complete profile, discover, register, view ticket, cancel", async ({ page }) => {
+test("student: sign up, verify, profile, discover, register, organiser approves, ticket, cancel", async ({ page }) => {
   const title = `E2E Student Workshop ${Date.now()}`;
   const event = await makeEvent({ title, capacity: 20 });
   const email = `${unique("student")}@example.com`;
@@ -28,12 +28,24 @@ test("student: sign up, verify, complete profile, discover, register, view ticke
   await page.waitForURL(`**/events/${event.slug}`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("E2E Student Workshop");
 
-  // 5–6. Register and see the confirmation.
+  // 5–6. Register: it waits for the organisers, no ticket yet.
   await page.getByRole("button", { name: "Register", exact: true }).first().click();
   await page.getByRole("button", { name: "Submit registration" }).click();
-  await expect(page.getByText(/You.re registered/).first()).toBeVisible();
+  await expect(page.getByText("Registration received").first()).toBeVisible();
+  await page.goto("/dashboard/registrations");
+  await expect(page.getByText("Awaiting approval").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "View ticket" })).toHaveCount(0);
+  await page.context().clearCookies();
 
-  // 7. View the registration and ticket.
+  // The society's organiser confirms the registration.
+  await login(page, "sara@example.com");
+  await page.goto(`/manage/computing-ai-society-nust/events/${event.id}/registrations?status=pending`);
+  await page.getByRole("button", { name: "Confirm" }).first().click();
+  await expect(page.getByText(/Registration confirmed/).first()).toBeVisible();
+  await page.context().clearCookies();
+
+  // 7. The student now has a ticket.
+  await login(page, email, "Str0ng-password!");
   await page.goto("/dashboard/registrations");
   await page.getByRole("link", { name: "View ticket" }).first().click();
   await expect(page.getByRole("img", { name: /QR code for ticket/ })).toBeVisible();

@@ -55,7 +55,7 @@ export function blankEventValues(defaultUniversityId: string): EventFormValues {
     eligibilityNotes: "",
     registrationMode: "individual",
     externalRegistrationUrl: "",
-    requiresApproval: false,
+    requiresApproval: true,
     capacity: "",
     waitlistEnabled: true,
     teamMin: "",

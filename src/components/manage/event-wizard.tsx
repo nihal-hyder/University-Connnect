@@ -434,13 +434,11 @@ export function EventWizard({ society, directory, defaults, status, formHasSubmi
                     <Input id="capacity" type="number" min={1} inputMode="numeric" {...register("capacity")} />
                   </Field>
                 </div>
-                <ToggleRow
-                  id="requiresApproval"
-                  title="Approve each registration"
-                  body="Registrations wait for an organiser to confirm them. Otherwise places are confirmed automatically."
-                  control={control}
-                  name="requiresApproval"
-                />
+                <p className="rounded-lg border border-border bg-surface px-4 py-3 text-sm leading-6 text-muted-foreground">
+                  <span className="font-medium text-foreground">Every registration is reviewed.</span> People who register wait as
+                  &ldquo;Awaiting approval&rdquo; until someone in your team confirms them under Registrations. Your team is
+                  notified as registrations arrive, and a confirmed person receives their ticket.
+                </p>
                 <ToggleRow
                   id="requireUniversityEmail"
                   title="Only verified university emails"

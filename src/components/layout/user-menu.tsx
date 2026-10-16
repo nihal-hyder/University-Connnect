@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Bell, LayoutDashboard, LogOut, Settings, Shield, Users } from "lucide-react";
+import { clearPrivateCaches } from "@/components/pwa/service-worker";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -88,7 +89,16 @@ export function UserMenu({ viewer }: { viewer: MenuViewer }) {
           </>
         ) : null}
         <DropdownMenuSeparator />
-        <form action="/auth/signout" method="post">
+        <form
+          action="/auth/signout"
+          method="post"
+          onSubmit={(e) => {
+            // Remove offline ticket copies from this device before signing out.
+            e.preventDefault();
+            const form = e.currentTarget;
+            void clearPrivateCaches().finally(() => form.submit());
+          }}
+        >
           <DropdownMenuItem asChild>
             <button type="submit" className="w-full">
               <LogOut /> Sign out

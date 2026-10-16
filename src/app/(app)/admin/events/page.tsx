@@ -39,9 +39,14 @@ export default async function EventReviewsPage() {
                     {e.society.name} · {formatEventRange(e.starts_at, e.ends_at, e.timezone)} · submitted {e.submitted_at ? relativeFromNow(e.submitted_at) : ""}
                   </p>
                 </div>
-                <Link href={`/events/${e.slug}`} target="_blank" className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline">
-                  Preview <ExternalLink className="size-3.5" aria-hidden />
-                </Link>
+                <div className="flex shrink-0 gap-4">
+                  <Link href={`/manage/${e.society.slug}/events/${e.id}`} className="text-sm font-medium text-primary hover:underline">
+                    Manage
+                  </Link>
+                  <Link href={`/events/${e.slug}`} target="_blank" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                    Preview <ExternalLink className="size-3.5" aria-hidden />
+                  </Link>
+                </div>
               </div>
               {e.summary ? <p className="mt-3 text-sm leading-6">{e.summary}</p> : null}
               <dl className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">

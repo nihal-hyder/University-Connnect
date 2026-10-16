@@ -48,7 +48,7 @@ export default async function ManageLayout({ children, params }: LayoutProps<"/m
             <Link href={`/societies/${ctx.society.slug}`} className="block truncate text-sm font-medium hover:underline">
               {ctx.society.name}
             </Link>
-            <p className="truncate text-xs text-muted-foreground">{ROLE_LABELS[ctx.role]}</p>
+            <p className="truncate text-xs text-muted-foreground">{ctx.viaAdmin ? "Platform admin (full access)" : ROLE_LABELS[ctx.role]}</p>
           </div>
         </div>
       }

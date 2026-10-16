@@ -216,7 +216,9 @@ npm run build
 
 Note: the database suite registers several times per demo account, and registration is rate-limited (10 per user per minute). Leave a minute between consecutive `npm run test:db` runs.
 
-Last local run: lint clean, typecheck clean, 51/51 unit, 27/27 database, 17/17 end-to-end, production build succeeded.
+Offline tickets need the service worker, which registers only in production builds: `npm run build && npx next start -p 3100`, then `PWA_BASE_URL=http://localhost:3100 npx playwright test pwa`.
+
+Last local run: lint clean, typecheck clean, 60/60 unit, 32/32 database, 23/23 end-to-end on the dev server plus the offline-ticket test on a production build, production build succeeded.
 
 ---
 
@@ -282,6 +284,15 @@ Done and tested locally:
 - [x] Dark mode (Light / Dark / System, no flash), recently viewed (on-device only), registration funnel analytics, per-shift capacity, Resend delivery webhooks
 - [x] Motion: brand intro on load/refresh, 3D headline, page transitions, scroll reveals; all respect reduced motion
 - [x] Fixed a latent RLS recursion that prevented anyone reading volunteer shifts (migration `0019`)
+- [x] 85 universities and 121 campuses across all provinces, with editable email domains (migration `0020`)
+- [x] Verified university email badge and optional "university emails only" events, enforced by a trigger (migration `0021`)
+- [x] Add to calendar (Google, Outlook, `.ics`) for events, tickets and volunteer shifts
+- [x] WhatsApp sharing and generated link-preview cards (`opengraph-image`) for every public event
+- [x] Organiser announcements to registrant and volunteer groups (in-app + optional email, rate-limited, audited)
+- [x] Installable app (manifest + service worker): tickets open offline; offline copies are removed on sign-out
+- [x] Certificate downloads as PDF (A4, pdf-lib), PNG and JPG (sharp); recipient and issuing society only
+- [x] Every registration requires organiser approval (DB constraint, migration `0022`); approvers are notified, capacity enforced at confirmation
+- [x] Platform administrators hold every society permission and land on `/admin` instead of the student overview (migrations `0022`, `0023`)
 
 Not done / known limitations:
 

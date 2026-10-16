@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { InstallAppButton } from "@/components/pwa/install-button";
 import { siteConfig } from "@/config/site";
 
 const COLUMNS = [
@@ -40,6 +41,7 @@ export function SiteFooter() {
         <div className="max-w-xs">
           <Logo />
           <p className="mt-4 text-sm leading-6 text-muted-foreground">{siteConfig.description}</p>
+          <InstallAppButton className="mt-4" label="Install the app" />
           <p className="mt-4 text-sm">
             <a className="text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground" href={`mailto:${siteConfig.contactEmail}`}>
               {siteConfig.contactEmail}

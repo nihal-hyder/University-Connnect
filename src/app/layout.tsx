@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { Intro } from "@/components/motion/intro";
 import { IntroDone } from "@/components/motion/intro-done";
+import { ServiceWorkerRegistration } from "@/components/pwa/service-worker";
 import { themeScript } from "@/components/theme/theme-script";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +24,8 @@ export const metadata: Metadata = {
   title: { default: `${siteConfig.fullName} — ${siteConfig.shortDescription}`, template: `%s · ${siteConfig.name}` },
   description: siteConfig.description,
   applicationName: siteConfig.name,
+  appleWebApp: { capable: true, title: siteConfig.name, statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
   openGraph: {
     type: "website",
     siteName: siteConfig.fullName,
@@ -54,6 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <Intro />
         <IntroDone />
+        <ServiceWorkerRegistration />
         <a
           href="#main"
           className="sr-only z-50 rounded-md bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"

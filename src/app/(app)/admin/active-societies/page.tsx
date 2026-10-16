@@ -56,6 +56,9 @@ export default async function AdminSocietiesPage({ searchParams }: PageProps<"/a
               {s.status === "suspended" && s.status_note ? <p className="mt-1 text-sm text-destructive">Suspended: {s.status_note}</p> : null}
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <Link href={`/manage/${s.slug}`} className="text-sm font-medium text-primary hover:underline">
+                Open workspace
+              </Link>
               <ToneBadge tone={s.status === "active" ? "positive" : "negative"} dot>
                 {s.status === "active" ? "Active" : "Suspended"}
               </ToneBadge>

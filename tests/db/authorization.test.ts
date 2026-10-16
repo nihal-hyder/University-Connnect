@@ -96,14 +96,40 @@ describe("students", () => {
 });
 
 describe("capacity", () => {
-  it("gives the last seat to exactly one of two simultaneous registrations", async () => {
+  it("never confirms a registration automatically", async () => {
+    const e = await makeEvent();
+    const { data } = await (await as("ayesha")).rpc("register_for_event", { p_event: e.id });
+    expect(data![0].registration_status).toBe("pending");
+    const { count } = await service().from("tickets").select("id", { count: "exact", head: true }).eq("registration_id", data![0].registration_id);
+    expect(count).toBe(0);
+    // Events cannot be switched to automatic confirmation, even by the host.
+    const { error } = await (await as("sara")).from("events").update({ requires_approval: false }).eq("id", e.id);
+    expect(error).not.toBeNull();
+  });
+
+  it("notifies the society's approvers when registrations arrive", async () => {
+    const e = await makeEvent({ title: `Approver ping ${tag}` });
+    await (await as("bilal")).rpc("register_for_event", { p_event: e.id });
+    const { data } = await service().from("notifications").select("link").eq("user_id", USER.sara).eq("type", "registration.awaiting_approval").ilike("title", `%${tag}%`);
+    expect(data?.[0]?.link).toContain("/registrations?status=pending");
+    // Volunteer coordinators can't approve registrations, so they aren't pinged.
+    const { count } = await service().from("notifications").select("id", { count: "exact", head: true }).eq("user_id", USER.hamza).ilike("title", `%${tag}%`);
+    expect(count).toBe(0);
+  });
+
+  it("gives the last seat to exactly one of two simultaneous approvals", async () => {
     const e = await makeEvent({ capacity: 1, waitlist_enabled: false });
-    const [ayesha, bilal] = await Promise.all([as("ayesha"), as("bilal")]);
-    const results = await Promise.all([ayesha.rpc("register_for_event", { p_event: e.id }), bilal.rpc("register_for_event", { p_event: e.id })]);
-    const confirmed = results.filter((r) => r.data?.[0]?.registration_status === "confirmed");
-    const refused = results.filter((r) => r.error);
-    expect(confirmed).toHaveLength(1);
-    expect(refused).toHaveLength(1);
+    const a = await (await as("ayesha")).rpc("register_for_event", { p_event: e.id });
+    const b = await (await as("bilal")).rpc("register_for_event", { p_event: e.id });
+    expect([a.data![0].registration_status, b.data![0].registration_status]).toEqual(["pending", "pending"]);
+    // Two organisers press "Confirm" at the same moment.
+    const [sara, admin] = await Promise.all([as("sara"), as("admin")]);
+    const results = await Promise.all([
+      sara.rpc("organizer_set_registration_status", { p_registration: a.data![0].registration_id, p_status: "confirmed" }),
+      admin.rpc("organizer_set_registration_status", { p_registration: b.data![0].registration_id, p_status: "confirmed" }),
+    ]);
+    expect(results.filter((r) => !r.error)).toHaveLength(1);
+    expect(results.find((r) => r.error)?.error?.message).toMatch(/capacity/i);
     const { data } = await service().from("events").select("confirmed_count").eq("id", e.id).single();
     expect(data!.confirmed_count).toBe(1);
   });
@@ -113,13 +139,14 @@ describe("capacity", () => {
     const ayesha = await as("ayesha");
     const bilal = await as("bilal");
     const first = await ayesha.rpc("register_for_event", { p_event: e.id });
+    await (await as("sara")).rpc("organizer_set_registration_status", { p_registration: first.data![0].registration_id, p_status: "confirmed" });
     const second = await bilal.rpc("register_for_event", { p_event: e.id });
-    expect(first.data![0].registration_status).toBe("confirmed");
     expect(second.data![0].registration_status).toBe("waitlisted");
     const { error } = await ayesha.rpc("cancel_registration", { p_registration: first.data![0].registration_id });
     expect(error).toBeNull();
+    // Promoted, but still waiting for the organisers to confirm.
     const { data } = await service().from("registrations").select("status").eq("id", second.data![0].registration_id).single();
-    expect(data!.status).toBe("confirmed");
+    expect(data!.status).toBe("pending");
   });
 
   it("refuses duplicate registrations", async () => {
@@ -160,8 +187,9 @@ describe("society members", () => {
   it("a duplicate ticket scan is reported, not double-counted", async () => {
     const e = await makeEvent();
     const { data: reg } = await (await as("ayesha")).rpc("register_for_event", { p_event: e.id });
-    const { data: ticket } = await service().from("tickets").select("code").eq("registration_id", reg![0].registration_id).single();
     const sara = await as("sara");
+    expect((await sara.rpc("organizer_set_registration_status", { p_registration: reg![0].registration_id, p_status: "confirmed" })).error).toBeNull();
+    const { data: ticket } = await service().from("tickets").select("code").eq("registration_id", reg![0].registration_id).single();
     const first = await sara.rpc("check_in_ticket", { p_event: e.id, p_code: ticket!.code });
     const second = await sara.rpc("check_in_ticket", { p_event: e.id, p_code: ticket!.code });
     expect((first.data as { result: string }).result).toBe("checked_in");
@@ -359,5 +387,61 @@ describe("additions: funnel, shift capacity, delivery events", () => {
     // Restore the demo account's defaults and remove the test row.
     await svc.from("user_preferences").update({ email_reminders: true, email_recommendations: false, email_society_updates: true }).eq("user_id", USER.bilal);
     await svc.from("email_outbox").delete().eq("id", row!.id);
+  });
+});
+
+describe("university-email events and announcements", () => {
+  it("refuses registrations from non-university emails when the event requires one", async () => {
+    const svc = service();
+    // Demo accounts use @example.com; give NUST that domain only for this test.
+    const { data: nust } = await svc.from("universities").select("id, email_domains").eq("slug", "nust").single();
+    const e = await makeEvent({ require_university_email: true, eligibility_scope: "open", university_id: nust!.id });
+    const refused = await (await as("ayesha")).rpc("register_for_event", { p_event: e.id });
+    expect(refused.error?.message).toMatch(/university email/i);
+    await svc.from("universities").update({ email_domains: [...nust!.email_domains, "example.com"] }).eq("id", nust!.id);
+    try {
+      const accepted = await (await as("bilal")).rpc("register_for_event", { p_event: e.id });
+      expect(accepted.error).toBeNull();
+    } finally {
+      await svc.from("universities").update({ email_domains: nust!.email_domains }).eq("id", nust!.id);
+    }
+  });
+
+  it("lets organisers message their own participants only, and records the send", async () => {
+    const e = await makeEvent();
+    await (await as("ayesha")).rpc("register_for_event", { p_event: e.id });
+    const sara = await as("sara");
+    const { data: count, error } = await sara.rpc("send_event_announcement", {
+      p_event: e.id,
+      p_audience: "all_registrants",
+      p_title: "Venue update",
+      p_body: "We moved to Hall B. See you there!",
+    });
+    expect(error).toBeNull();
+    expect(count).toBe(1);
+    const { data: notes } = await service().from("notifications").select("title").eq("user_id", USER.ayesha).eq("type", "event.announcement").ilike("title", "%Venue update%");
+    expect(notes!.length).toBeGreaterThan(0);
+
+    // Volunteer coordinators can't message registrants; students can't send at all;
+    // another society can't message this event's participants.
+    expect((await (await as("hamza")).rpc("send_event_announcement", { p_event: e.id, p_audience: "confirmed", p_title: "Hi there", p_body: "Spam message" })).error?.code).toBe("42501");
+    expect((await (await as("ayesha")).rpc("send_event_announcement", { p_event: e.id, p_audience: "confirmed", p_title: "Hi there", p_body: "Spam message" })).error).not.toBeNull();
+    expect((await (await as("zainab")).rpc("send_event_announcement", { p_event: e.id, p_audience: "confirmed", p_title: "Hi there", p_body: "Spam message" })).error?.code).toBe("42501");
+    // History is visible to organisers, not to participants.
+    expect((await sara.from("event_announcements").select("id").eq("event_id", e.id)).data).toHaveLength(1);
+    expect((await (await as("ayesha")).from("event_announcements").select("id").eq("event_id", e.id)).data).toEqual([]);
+  });
+});
+
+describe("platform administrators", () => {
+  it("can manage any society's events and registrations; students still cannot", async () => {
+    const lums = await makeEvent({ society_id: SOCIETY.entrepreneurship });
+    const { data: reg } = await (await as("bilal")).rpc("register_for_event", { p_event: lums.id });
+    const admin = await as("admin");
+    expect((await admin.from("events").update({ summary: "Edited by platform staff" }).eq("id", lums.id).select("id")).data).toHaveLength(1);
+    expect((await admin.rpc("organizer_set_registration_status", { p_registration: reg![0].registration_id, p_status: "confirmed" })).error).toBeNull();
+    expect((await admin.from("registrations").select("id").eq("event_id", lums.id)).data).toHaveLength(1);
+    // A regular student gains nothing from this.
+    expect((await (await as("ayesha")).from("events").update({ summary: "nope" }).eq("id", lums.id).select("id")).data ?? []).toEqual([]);
   });
 });

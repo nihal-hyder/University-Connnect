@@ -22,6 +22,8 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
 export type ViewerMembership = {
   society_id: string;
   role: SocietyRole;
+  /** True when a platform admin is acting without being a member. */
+  viaAdmin?: boolean;
   society: { id: string; slug: string; name: string; logo_path: string | null; status: "active" | "suspended" };
 };
 
@@ -83,11 +85,20 @@ export async function requireAdmin(): Promise<Viewer> {
   return viewer;
 }
 
+/** A virtual owner-level membership for platform admins (no row in the table). */
+const adminMembership = cache(async (slug: string): Promise<ViewerMembership | undefined> => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("societies").select("id, slug, name, logo_path, status").eq("slug", slug).maybeSingle();
+  if (!data) return undefined;
+  return { society_id: data.id, role: "owner", society: data, viaAdmin: true };
+});
+
 export type SocietyContext = {
   viewer: Viewer;
   role: SocietyRole;
   society: ViewerMembership["society"];
   can: (permission: SocietyPermission) => boolean;
+  viaAdmin: boolean;
 };
 
 /**
@@ -96,12 +107,17 @@ export type SocietyContext = {
  */
 export async function requireSocietyAccess(slug: string, permission?: SocietyPermission): Promise<SocietyContext> {
   const viewer = await requireViewer(`/manage/${slug}`);
-  const membership = viewer.memberships.find((m) => m.society.slug === slug);
+  let membership = viewer.memberships.find((m) => m.society.slug === slug);
+  // Platform administrators can open any society's workspace with full
+  // (owner-level) permissions; the database grants them the same.
+  if (!membership && viewer.isAdmin) membership = await adminMembership(slug);
   if (!membership) notFound();
-  const suspended = membership.society.status === "suspended";
+  const m = membership;
+  const suspended = m.society.status === "suspended";
   const check = (p: SocietyPermission) =>
-    can(membership.role, p) &&
-    (!suspended || ["view_society", "view_registrations", "view_volunteer_applicants", "view_analytics", "export_data"].includes(p));
+    Boolean(m.viaAdmin) ||
+    (can(m.role, p) &&
+    (!suspended || ["view_society", "view_registrations", "view_volunteer_applicants", "view_analytics", "export_data"].includes(p)));
   if (permission && !check(permission)) notFound();
-  return { viewer, role: membership.role, society: membership.society, can: check };
+  return { viewer, role: m.role, society: m.society, can: check, viaAdmin: Boolean(m.viaAdmin) };
 }

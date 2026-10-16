@@ -209,6 +209,8 @@ export async function resolveEventAccess(eventId: string) {
   const supabase = await createClient();
   const { data: event } = await supabase.from("events").select("id, slug, title, society_id").eq("id", eventId).maybeSingle();
   if (!event) return null;
+  // Platform admins act with full powers on any event (the database agrees).
+  if (viewer.isAdmin) return { viewer, event, access: computeEventAccess({ can: () => true }, true, null) };
   const hostMembership = viewer.memberships.find((m) => m.society_id === event.society_id);
   const ctxFor = (m: (typeof viewer.memberships)[number]) => ({
     can: (p: Parameters<typeof can>[1]) => can(m.role, p) && (m.society.status === "active" || ["view_society", "view_registrations", "view_volunteer_applicants", "view_analytics", "export_data"].includes(p)),

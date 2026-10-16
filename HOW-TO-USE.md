@@ -60,6 +60,8 @@ Emails sent locally (sign-up confirmations, password resets) appear at **http://
 2. Open the email we send and click the link to **verify your address**. You can't log in until you do. No email? Use **Resend** on the login page, and check spam.
 3. Choose **"I'm a student"**. Add your university, campus, department and interests. **Everything except your name is optional.** You can browse events without completing any of it.
 
+**Verified university email.** If you sign up with your university address (for example `@nu.edu.pk` or `@nust.edu.pk`), Settings shows a **Verified university email** badge. Some events only accept university emails; they say so under **Eligibility**.
+
 Why add your university and interests? You get suggestions marked with a reason, such as *"Because you selected Cybersecurity"* or *"At your university"*, and the **"I'm eligible"** filter works for you.
 
 ### 3.2 Find events
@@ -79,15 +81,18 @@ Why add your university and interests? You get suggestions marked with a reason,
 | Postponed / Cancelled | The organisers changed the event; you'll have been notified |
 | Register on organiser's site | Registration happens on an external link |
 
+### 3.2a Share and plan
+
+- **Share → WhatsApp** sends the event name, date, place and link straight into a chat or group. Links show a preview card with the date, venue and whether registration is open.
+- **Add to calendar** puts the event into Google Calendar, Outlook or Apple Calendar (the `.ics` option), with a 1-hour reminder.
+
 ### 3.3 Register
 
 1. On the event page click **Register** (or **Register your team** / **Join the waitlist**).
 2. Answer the organiser's questions. Required questions have a red `*`. Team events also ask for your team name and members.
-3. Submit. You'll see one of:
-   - **You're registered**: your place is confirmed and your **QR ticket** is ready.
-   - **Registration received**: the organisers approve registrations by hand; you'll be notified.
-   - **You're on the waitlist**: you're moved up automatically if a place opens.
-4. Find everything under **Dashboard → My registrations**.
+3. Submit. You'll see **Registration received** (status **Awaiting approval**). **Every registration, for every hackathon, webinar or event, is reviewed by the organising society** before it's confirmed. If the event is full you'll see **You're on the waitlist** instead.
+4. A society member reviews it. When they **confirm** you, you get a notification (and an email), and your **QR ticket** appears. If they decline, you're told why.
+5. Find everything under **Dashboard → My registrations**. When a place frees up on a full event, the next person on the waitlist moves to **Awaiting approval** for the organisers to confirm.
 
 **Paid events:** fees are paid **directly to the organisers** using the instructions or link on the event page. CampusConnect doesn't take payments, and a confirmed registration does **not** mean your payment was received.
 
@@ -95,6 +100,8 @@ Why add your university and interests? You get suggestions marked with a reason,
 
 - Open **My registrations → View ticket**. Show the QR code at the entrance. If scanning fails, read out the code printed under it.
 - **Online events:** the meeting link appears on your ticket page once your place is confirmed. It's never shown publicly.
+- **Add to calendar** is on the ticket page too.
+- **No signal at the gate?** Install the app (**Install app** on the ticket page or in the footer, or your browser's "Add to Home screen"). Any ticket you've opened once then also opens **offline**. Signing out removes these offline copies from the device.
 - **Can't attend?** On the ticket page click **Cancel registration** (possible until the event starts). This frees your place for someone on the waitlist.
 
 ### 3.5 Volunteer
@@ -103,8 +110,8 @@ Why add your university and interests? You get suggestions marked with a reason,
 2. Click **Apply for this role**, answer the questions, and add a portfolio link if you have one. You'll get a reference number like `V-AB12CD3`.
 3. Track it under **Dashboard → My applications**. Possible statuses: Submitted → Under review → Shortlisted → Interview requested → **Offer received** → Accepted (or Not selected / Waitlisted).
 4. When you get an **offer**, open the application and choose **Accept** or **Decline**, before the deadline if one is shown.
-5. Once accepted, your **shifts** (times, place, instructions) appear on the same page. You get a reminder the day before.
-6. After the event, organisers can mark your participation complete and issue a **certificate**. It appears under **Dashboard → Certificates** with a public verification link you can share.
+5. Once accepted, your **shifts** (times, place, instructions) appear on the same page, each with **Add shift to calendar**. You get a reminder the day before.
+6. After the event, organisers can mark your participation complete and issue a **certificate**. It appears under **Dashboard → Certificates**, where you can **Download PDF** (best for printing and email) or **PNG / JPG** (for LinkedIn, WhatsApp or a portfolio). Each file shows its verification code and link, and anyone can check it at **/verify**. Only you and the issuing society can download it.
 7. Plans changed? **Withdraw application** frees the place for someone else.
 
 Some roles ask you to register for the event as well; the role description says so.
@@ -170,7 +177,8 @@ You can change a member's role or remove them from the same page. **Handing over
 1. **Basics:** title, type, category, description (at least 50 characters to publish), cover image (optional; we generate artwork otherwise), tags, agenda and speakers. The **link** (`/events/your-link`) is created from the title and locked once you submit.
 2. **Logistics:** start and end in **Pakistan time**, format, university, campus, venue and city (needed for in-person events), the online meeting link (shown only to confirmed participants), accessibility notes, public contact.
 3. **Registration:**
-   - **Who can register:** everyone, your university only, or chosen universities, plus academic levels.
+   - Every registration is reviewed by your team before it's confirmed (this can't be switched off).
+   - **Who can register:** everyone, your university only, or chosen universities, plus academic levels. Switch on **Only verified university emails** to accept only people whose sign-up email is on an eligible university's domain.
    - **How:** individuals, teams (set the minimum and maximum size), an external link, or no registration.
    - **Opening and closing time**, **capacity**, **approve each registration** (on or off), **waitlist when full**, and terms people must accept.
    - **Registration questions:** add short or long answers, single choice, checkboxes, dropdowns, email, number, links, consent statements and information text. Reorder with the arrows. **Ask only what you need.** Names and emails already come from accounts.
@@ -191,12 +199,22 @@ Changing the time or venue of a published event notifies participants automatica
 
 ### 4.5 Manage registrations
 
+**Every registration needs your approval.** Nobody is confirmed automatically, whatever the event type. When people register, everyone in your team who can manage registrations (owner, administrators, event managers) gets a notification linking straight to the waiting list. Capacity is checked at the moment you confirm, so two team members confirming at once can never overfill the event.
+
 **Event → Registrations**
 
 - Search by name, email or reference (`R-…`), and filter by status.
 - **Confirm**, **Waitlist** or **Decline** each registration. Declining a confirmed person requires a message, and their ticket stops working.
 - Open **Answers** to read someone's responses and team members.
 - **Registrations CSV** / **Attendance CSV** download spreadsheets (needs the export permission). Formulas typed by registrants are neutralised so the file is safe to open.
+
+### 4.5a Send announcements
+
+**Event → Announcements** messages a group of this event's participants: everyone registered, confirmed only, the waitlist, people awaiting approval, confirmed volunteers, all volunteer applicants, or the volunteers on one shift.
+
+- Everyone gets an in-app notification. Tick **Also send by email** to email them too (people who turned off reminders won't get the email).
+- Use it for things people need: venue or time changes, what to bring, check-in instructions. The **Sent** list keeps a record with recipient counts.
+- Limits: 10 announcements per hour per organiser. Only the host society can send them.
 
 ### 4.6 Check people in on the day
 
@@ -215,6 +233,7 @@ The counters at the top show checked in, confirmed and the attendance rate.
 - **Roles:** **Pause**, **Close** or **Reopen** applications. **Form & shifts** opens the role page, where you:
   - edit the role's **application questions** (earlier answers keep their original questions);
   - create **shifts** with a time, place, instructions and optional **number of places**. A full shift can't take more volunteers.
+  - the **Registrations** list marks people who signed up with a university email (for example "NUST email").
 - **Applications:** filter by role and status, then click a name to review. On the review page:
   - read their answers and profile;
   - add **internal notes** (your team sees them, the applicant never does);
@@ -260,7 +279,9 @@ The **funnel** shows each step as a percentage of the one before, so you can see
 
 ## 5. For platform administrators
 
-Administrators are added by the project owner (see `README.md → Bootstrapping the first administrator`). Open **Platform admin** from the account menu.
+Administrators are added by the project owner (see `README.md → Bootstrapping the first administrator`). After logging in, administrators go straight to **Platform admin** instead of the student dashboard.
+
+**Full powers.** A platform administrator can open **any society's workspace** with owner-level access: edit or cancel events, confirm or decline registrations, run volunteers, manage members and even transfer ownership (for example when a society's owner has graduated). Use **Societies → Open workspace**, or **Manage** on an event in **Event reviews**. The workspace header shows "Platform admin (full access)", and every action is recorded in the audit log under the admin's name.
 
 | Page | What you do there |
 | --- | --- |
@@ -269,7 +290,7 @@ Administrators are added by the project owner (see `README.md → Bootstrapping 
 | **Event reviews** | **Preview** each submitted event, then **Approve**, **Request changes** or **Reject**, with a note to the organisers |
 | **Reports** | Start review, **Resolve** (say what was done), **Dismiss**, or **Suspend** the society behind a report |
 | **Societies** | **Trust to publish** (skip event review) or **Require review**; **Suspend** (hides the society and its events and freezes changes; the team can still view and export) or **Reinstate** |
-| **Directory** | Add universities, campuses, departments and categories with official spellings (duplicates are refused). **Hide** keeps old records intact |
+| **Directory** | 85+ universities and their campuses are preloaded. Add universities, campuses, departments and categories with official spellings (duplicates are refused). Edit each university's **email domains** (what counts as a verified university email). **Hide** keeps old records intact |
 | **Audit log** | Every important change (roles, ownership, publishing, decisions), filterable by action |
 
 ---

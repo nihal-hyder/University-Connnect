@@ -22,6 +22,30 @@ test("students cannot open admin or another society's workspace", async ({ page 
   expect((await page.goto("/manage/computing-ai-society-nust"))?.status()).toBe(404);
 });
 
+test("administrators land on the admin area and can open any society workspace", async ({ page }) => {
+  await login(page, "admin@example.com");
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page.getByRole("heading", { name: "Platform overview" })).toBeVisible();
+  await page.goto("/manage/entrepreneurship-club-lums");
+  await expect(page.getByText("Platform admin (full access)")).toBeVisible();
+});
+
+test("certificates download as PDF, PNG and JPG for the recipient only", async ({ page }) => {
+  await login(page, "bilal@example.com");
+  await page.goto("/dashboard/certificates");
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Download PDF" }).first().click()]);
+  expect(download.suggestedFilename()).toMatch(/^certificate-CC-.+\.pdf$/);
+  for (const [format, type, magic] of [["png", "image/png", "89504e47"], ["jpg", "image/jpeg", "ffd8ff"]] as const) {
+    const res = await page.request.get(`/api/certificates/CC-DEMO-GIT1-2026/download?format=${format}`);
+    expect(res.headers()["content-type"]).toBe(type);
+    expect((await res.body()).subarray(0, 4).toString("hex")).toContain(magic);
+  }
+  await page.context().clearCookies();
+  await login(page, "ayesha@example.com");
+  expect((await page.request.get("/api/certificates/CC-DEMO-GIT1-2026/download?format=pdf")).status()).toBe(404);
+});
+
 test("CSV exports are refused without the export permission", async ({ page }) => {
   const { data: event } = await service().from("events").select("id").eq("society_id", SOCIETY.computing).eq("status", "published").limit(1).single();
   await login(page, "hamza@example.com"); // volunteer coordinator: no export permission

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cache } from "react";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
+import { CertificateDownloads } from "@/components/certificates/download-buttons";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { formatDate } from "@/lib/format";
@@ -23,6 +24,10 @@ export default async function CertificatePage({ params }: PageProps<"/certificat
   const { code: raw } = await params;
   const code = decodeURIComponent(raw).toUpperCase();
   const cert = await lookup(code);
+  // RLS only returns the row to the recipient or the issuing society.
+  const supabase = await createClient();
+  const { data: own } = cert ? await supabase.from("certificates").select("id").eq("code", code).maybeSingle() : { data: null };
+  const canDownload = Boolean(own) && !cert?.revoked;
 
   if (!cert) {
     return (
@@ -80,6 +85,12 @@ export default async function CertificatePage({ params }: PageProps<"/certificat
           </div>
         </dl>
       </article>
+      {canDownload ? (
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <CertificateDownloads code={code} size="default" />
+          <p className="text-xs text-muted-foreground">Only you (and the issuing society) can see these download buttons.</p>
+        </div>
+      ) : null}
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Certificates are issued by the organising society based on the volunteer&rsquo;s actual participation. {siteConfig.name}{" "}
         records who issued them but does not independently verify attendance.

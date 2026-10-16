@@ -138,3 +138,72 @@ export function SiteCard() {
     </div>
   );
 }
+
+/** Printable certificate (A4 landscape proportions). Mirrors the /certificates page. */
+export const CERT_SIZE = { width: 2000, height: 1414 };
+
+export function CertificateCard({
+  recipient,
+  role,
+  event,
+  society,
+  eventDate,
+  issuer,
+  issuedOn,
+  code,
+  verifyUrl,
+}: {
+  recipient: string;
+  role: string;
+  event: string;
+  society: string;
+  eventDate: string | null;
+  issuer: string;
+  issuedOn: string;
+  code: string;
+  verifyUrl: string;
+}) {
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", background: COLORS.paper, padding: 56, fontFamily: "Geist", color: COLORS.ink }}>
+      <div style={{ flex: 1, display: "flex", border: `3px solid ${COLORS.green}`, padding: 18 }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            border: `1px solid ${COLORS.border}`,
+            background: COLORS.surface,
+            padding: "110px 140px 70px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <Mark size={64} />
+            <div style={{ fontFamily: "Newsreader", fontSize: 46 }}>{siteConfig.name}</div>
+          </div>
+          <div style={{ marginTop: 60, fontSize: 30, letterSpacing: 8, color: COLORS.signal, textTransform: "uppercase" }}>Certificate of volunteer service</div>
+          <div style={{ marginTop: 110, fontSize: 36, color: COLORS.muted }}>This certifies that</div>
+          <div style={{ marginTop: 18, fontFamily: "Newsreader", fontStyle: "italic", fontSize: recipient.length > 28 ? 104 : 128, lineHeight: 1.05, color: COLORS.ink }}>
+            {recipient}
+          </div>
+          <div style={{ marginTop: 18, width: 520, height: 3, background: COLORS.signal }} />
+          <div style={{ marginTop: 56, maxWidth: 1400, fontSize: 40, lineHeight: 1.5, textAlign: "center", display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
+            {`served as ${role} at ${event}, organised by ${society}${eventDate ? `, on ${eventDate}` : ""}.`}
+          </div>
+          <div style={{ marginTop: "auto", width: "100%", display: "flex", justifyContent: "space-between", alignItems: "flex-end", borderTop: `1px solid ${COLORS.border}`, paddingTop: 36 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ fontSize: 24, color: COLORS.muted }}>Issued by</div>
+              <div style={{ fontFamily: "Newsreader", fontSize: 40 }}>{issuer}</div>
+              <div style={{ fontSize: 26, color: COLORS.muted }}>{society}</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+              <div style={{ fontSize: 24, color: COLORS.muted }}>{`Issued on ${issuedOn}`}</div>
+              <div style={{ fontSize: 30, letterSpacing: 2 }}>{code}</div>
+              <div style={{ fontSize: 22, color: COLORS.muted }}>{`Verify at ${verifyUrl}`}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

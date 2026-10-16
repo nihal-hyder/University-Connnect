@@ -5,6 +5,8 @@ import QRCode from "qrcode";
 import { CalendarDays, ExternalLink, MapPin, Video } from "lucide-react";
 import { ActionButton } from "@/components/common/action-button";
 import { AddToCalendar } from "@/components/events/add-to-calendar";
+import { InstallAppButton } from "@/components/pwa/install-button";
+import { SaveTicketOffline } from "@/components/pwa/save-ticket-offline";
 import { ToneBadge } from "@/components/common/tone-badge";
 import { Section } from "@/components/layout/dashboard-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -257,6 +259,11 @@ export default async function RegistrationDetailPage({ params }: PageProps<"/das
               />
               <p className="mt-4 text-xs text-muted-foreground">Show this at the entrance. If the scanner cannot read it, give this code:</p>
               <p className="mt-1 font-mono text-sm break-all select-all">{activeTicket.code}</p>
+              <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                Once opened, this ticket also works offline in the installed app, handy at gates with weak signal.
+              </p>
+              <InstallAppButton className="mt-2" label="Install app for offline tickets" />
+              <SaveTicketOffline />
               {attendance.data ? (
                 <p className="mt-4 rounded-md bg-success-soft px-3 py-2 text-sm text-success">Checked in {formatDateTime(attendance.data.checked_in_at)}</p>
               ) : null}
