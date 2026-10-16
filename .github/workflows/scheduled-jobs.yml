@@ -1,0 +1,26 @@
+# Calls the reminder/email worker every 15 minutes. Free on public and private
+# repos within GitHub Actions' included minutes. GitHub may delay scheduled
+# runs under load; the worker is idempotent, so late or overlapping runs are safe.
+#
+# Required repository secrets:
+#   APP_URL     e.g. https://your-app.vercel.app   (no trailing slash)
+#   JOB_SECRET  the same value as the app's JOB_SECRET environment variable
+name: Scheduled jobs
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+permissions: {}
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Run worker
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          JOB_SECRET: ${{ secrets.JOB_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$JOB_SECRET" ]; then echo "APP_URL/JOB_SECRET not configured; skipping."; exit 0; fi
+          curl --fail-with-body --silent --show-error --max-time 90 \
+            -H "Authorization: Bearer $JOB_SECRET" "$APP_URL/api/jobs/process"

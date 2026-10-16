@@ -1,26 +1,474 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Dark mode follows a .dark class on <html> (set before paint by ThemeScript). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * CampusConnect design tokens
+ * ---------------------------------------------------------------------------
+ * Every colour, font and radius used in the product is defined here. Change the
+ * values in :root to re-theme the application; component code only refers to
+ * the semantic names (background, primary, signal, ...).
+ *
+ * Palette: warm paper, ink, a deep "college green" primary and a single
+ * terracotta signal colour used sparingly for emphasis.
+ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
+  --color-signal-soft: var(--signal-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-primary-soft: var(--primary-soft);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-heading: var(--font-newsreader), ui-serif, Georgia, serif;
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Layout widths */
+  --container-page: 76rem;
+  --container-prose: 42rem;
+
+  /* Editorial type scale (display sizes are fluid) */
+  --text-display: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.025em;
+  --text-headline: clamp(1.75rem, 1.35rem + 1.6vw, 2.5rem);
+  --text-headline--line-height: 1.1;
+  --text-headline--letter-spacing: -0.02em;
+  --text-title: 1.375rem;
+  --text-title--line-height: 1.25;
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1rem;
+  --text-eyebrow--letter-spacing: 0.08em;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --paper: oklch(0.966 0.008 85);
+  --surface: oklch(0.988 0.004 85);
+  --ink: oklch(0.21 0.006 250);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+
+  /* Deep college green */
+  --primary: oklch(0.385 0.062 162);
+  --primary-foreground: oklch(0.985 0.004 85);
+  --primary-soft: oklch(0.93 0.025 160);
+
+  /* Terracotta signal — highlights, markers, never large surfaces */
+  --signal: oklch(0.6 0.15 40);
+  --signal-ink: oklch(0.5 0.14 38);
+  --signal-soft: oklch(0.94 0.03 55);
+
+  --secondary: oklch(0.925 0.012 85);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.935 0.01 85);
+  --muted-foreground: oklch(0.47 0.01 150);
+  --accent: oklch(0.925 0.012 85);
+  --accent-foreground: var(--ink);
+
+  --success: oklch(0.47 0.1 155);
+  --success-soft: oklch(0.94 0.035 155);
+  --warning: oklch(0.55 0.12 70);
+  --warning-soft: oklch(0.95 0.05 85);
+  --info: oklch(0.45 0.09 255);
+  --info-soft: oklch(0.94 0.025 255);
+  --destructive: oklch(0.53 0.19 28);
+
+  --border: oklch(0.885 0.014 85);
+  --input: oklch(0.86 0.014 85);
+  --ring: oklch(0.385 0.062 162);
+
+  /* Data series: validated for CVD separation on --surface (see README). */
+  --chart-1: oklch(0.5 0.14 255);
+  --chart-2: oklch(0.62 0.15 45);
+  --chart-3: oklch(0.62 0.07 162);
+  --chart-4: oklch(0.45 0.09 255);
+  --chart-5: oklch(0.55 0.12 70);
+
+  --radius: 0.5rem;
+
+  /* Hover colours for 3D headline letters: bright enough to separate from the extruded edge. */
+  --letter-hover: oklch(0.55 0.13 160);
+  --letter-hover-accent: oklch(0.62 0.16 42);
+
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--secondary);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+
+/* Dark theme: warm charcoal, not pure black. Same semantic names. */
+.dark {
+  --paper: oklch(0.19 0.007 85);
+  --surface: oklch(0.235 0.008 85);
+  --ink: oklch(0.94 0.008 85);
+
+  --primary: oklch(0.74 0.09 160);
+  --primary-foreground: oklch(0.2 0.02 160);
+  --primary-soft: oklch(0.3 0.04 160);
+
+  --signal: oklch(0.72 0.14 45);
+  --signal-ink: oklch(0.78 0.12 50);
+  --signal-soft: oklch(0.3 0.05 45);
+
+  --secondary: oklch(0.28 0.008 85);
+  --muted: oklch(0.27 0.008 85);
+  --muted-foreground: oklch(0.7 0.012 85);
+  --accent: oklch(0.28 0.008 85);
+
+  --success: oklch(0.76 0.11 155);
+  --success-soft: oklch(0.3 0.05 155);
+  --warning: oklch(0.8 0.12 80);
+  --warning-soft: oklch(0.31 0.05 80);
+  --info: oklch(0.76 0.09 255);
+  --info-soft: oklch(0.3 0.04 255);
+  --destructive: oklch(0.68 0.18 28);
+
+  --border: oklch(0.32 0.01 85);
+  --input: oklch(0.36 0.01 85);
+  --ring: oklch(0.74 0.09 160);
+
+  --letter-hover: oklch(0.84 0.12 160);
+  --letter-hover-accent: oklch(0.74 0.15 48);
+
+  /* Validated for CVD separation against --surface in dark mode. */
+  --chart-1: oklch(0.64 0.13 255);
+  --chart-2: oklch(0.65 0.15 45);
+
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "cv11";
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  ::selection {
+    background: var(--primary-soft);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .eyebrow {
+    @apply text-eyebrow font-medium uppercase text-muted-foreground;
+  }
+  .page-container {
+    @apply mx-auto w-full max-w-page px-4 sm:px-6 lg:px-8;
+  }
+  .prose-body {
+    @apply max-w-prose text-[15px] leading-7 text-foreground/90;
+  }
+  .prose-body p + p {
+    @apply mt-4;
+  }
+  .hairline {
+    @apply border-t border-border;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+ * Motion. Every animation below is disabled by the reduced-motion block at
+ * the end of this file.
+ * ------------------------------------------------------------------------- */
+@layer components {
+  /* Theme switch: brief colour cross-fade, never on first paint. */
+  .theme-switching,
+  .theme-switching * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+  }
+
+  /* Page enter (template.tsx): plays on every client-side navigation. */
+  .page-enter {
+    animation: page-enter 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  /* Intro (first visit / refresh): brand reveal, then a curtain lifts. */
+  .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    background: var(--paper);
+    animation: intro-curtain 0.75s cubic-bezier(0.7, 0, 0.2, 1) 1.25s both;
+  }
+  .intro::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 3px;
+    background: var(--signal);
+    transform-origin: left;
+    animation: intro-line 1.1s cubic-bezier(0.6, 0, 0.2, 1) 0.1s both;
+  }
+  .intro__stage {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    perspective: 700px;
+    animation: intro-stage-out 0.5s ease-in 1.15s both;
+  }
+  .intro__mark {
+    transform-style: preserve-3d;
+    animation: intro-mark 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    filter: drop-shadow(0 10px 14px color-mix(in oklch, var(--primary) 35%, transparent));
+  }
+  .intro__word {
+    display: flex;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.4rem + 3vw, 3.25rem);
+    letter-spacing: -0.02em;
+    color: var(--foreground);
+    transform-style: preserve-3d;
+  }
+  .intro__letter {
+    display: inline-block;
+    transform-origin: 50% 100%;
+    animation: letter-flip 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(0.18s + var(--i) * 38ms);
+    text-shadow: var(--depth-shadow);
+  }
+
+  /* 3D letters (Text3D). Clean at rest; each letter pops forward on hover with
+     a solid extruded edge in its hover colour, and its neighbours lift a little. */
+  .text-3d {
+    perspective: 900px;
+  }
+  .text-3d__inner {
+    display: block;
+  }
+  html:not([data-intro-done]) .text-3d__inner {
+    --delay: 1300ms;
+  }
+  .text-3d__word {
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .letter-3d {
+    --hover: var(--letter-hover);
+    --edge: color-mix(in oklch, var(--hover) 55%, black);
+    --lift: 0;
+    display: inline-block;
+    transform-origin: 50% 85%;
+    transform-style: preserve-3d;
+    transform: translateY(calc(var(--lift) * -0.14em)) rotateX(calc(var(--lift) * -18deg)) translateZ(calc(var(--lift) * 30px));
+    transition:
+      transform 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.35),
+      color 0.25s ease,
+      text-shadow 0.3s ease;
+    animation: letter-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--delay, 0ms) + var(--i) * 18ms);
+  }
+  [data-accent] .letter-3d,
+  em .letter-3d {
+    --hover: var(--letter-hover-accent);
+  }
+  .letter-3d:hover {
+    --lift: 1;
+    color: var(--hover);
+    text-shadow:
+      0.01em 0.01em 0 var(--edge),
+      0.02em 0.02em 0 var(--edge),
+      0.03em 0.03em 0 var(--edge),
+      0.04em 0.04em 0 var(--edge),
+      0.05em 0.05em 0 var(--edge),
+      0.09em 0.14em 0.12em color-mix(in oklch, black 22%, transparent);
+    transition-duration: 0.2s, 0.15s, 0.2s;
+  }
+  /* Neighbour ripple: the letters either side rise a little (colour unchanged). */
+  .letter-3d:hover + .letter-3d,
+  .letter-3d:has(+ .letter-3d:hover) {
+    --lift: 0.35;
+  }
+
+  .intro {
+    /* Soft lift only: crisp in both themes, no tinted smear. */
+    --depth-shadow: 0 0.05em 0.12em color-mix(in oklch, var(--foreground) 16%, transparent);
+  }
+
+  /* Cards: gentle lift on hover/focus. */
+  .card-lift {
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease;
+  }
+  .group:hover > .card-lift,
+  .group:focus-within > .card-lift,
+  .card-lift:hover {
+    box-shadow: 0 18px 32px -24px color-mix(in oklch, var(--foreground) 45%, transparent);
+  }
+
+  /* Reveal on scroll (Reveal component). */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .reveal[data-shown="true"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes intro-curtain {
+  to {
+    clip-path: inset(0 0 100% 0);
+    visibility: hidden;
+  }
+}
+@keyframes intro-line {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes intro-mark {
+  from {
+    opacity: 0;
+    transform: rotateY(-200deg) rotateX(25deg) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes letter-flip {
+  from {
+    opacity: 0;
+    transform: rotateX(-95deg) translateY(0.3em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes intro-stage-out {
+  to {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.98);
+  }
+}
+@keyframes letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em) rotateX(-70deg);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .intro {
+    display: none !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .letter-3d,
+  .letter-3d:hover {
+    transform: none !important;
+  }
 }
